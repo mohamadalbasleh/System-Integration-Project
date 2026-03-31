@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Detail — PageTurn</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <script src="api.js"></script>
+  <script>renderNav('catalog');</script>
+
+  <div class="page">
+    <div class="breadcrumb">
+      <a href="index.html">Home</a> › <a href="catalog.html">Books</a> › <span id="bc-title">Loading…</span>
+    </div>
+
+    <div id="content">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <script>
+    const bookId = new URLSearchParams(window.location.search).get('id');
+
+    async function loadBook() {
+      if (!bookId) {
+        document.getElementById('content').innerHTML = `<div class="alert alert-error">❌ No book ID provided. <a href="catalog.html">Go back to catalog</a></div>`;
+        return;
+      }
+
+      try {
+        const b = await apiFetch(`/books/${bookId}`);
+        document.title = `${b.title} — PageTurn`;
+        document.getElementById('bc-title').textContent = b.title;
+
+        document.getElementById('content').innerHTML = `
+          <div class="book-detail">
+            <div>
+              <div class="book-detail-cover" style="background:${bookCoverColors(b.id)}">
+                ${b.cover_url ? `<img src="${b.cover_url}" alt="${b.title}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius)">` : `<span>${bookEmoji(b.category)}</span>`}
+              </div>
+            </div>
+
+            <div class="book-detail-info">
+              <div class="book-category" style="font-size:0.85rem;margin-bottom:0.5rem">${b.category || 'General'}</div>
+              <h1>${b.title}</h1>
+              <div class="book-detail-author">by <strong>${b.author}</strong></div>
+
+              <div class="book-detail-meta">
+                ${b.rating   ? `<span class="meta-chip">★ ${b.rating} Rating</span>` : ''}
+                ${b.pages    ? `<span class="meta-chip">📄 ${b.pages} pages</span>` : ''}
+                ${b.isbn     ? `<span class="meta-chip">ISBN: ${b.isbn}</span>` : ''}
+                ${b.stock !== undefined ? `<span class="meta-chip ${b.stock > 0 ? '' : 'style="background:#fef2f2;color:#dc2626"'}">${b.stock > 0 ? `✅ In Stock (${b.stock})` : '❌ Out of Stock'}</span>` : ''}
+              </div>
+
+              <p class="book-detail-description">${b.description || 'No description available for this book.'}</p>
+
+              <div class="book-detail-price">${formatPrice(b.price)}</div>
+
+              <div class="book-detail-actions">
+                <button class="btn btn-primary btn-lg" id="add-cart-btn" onclick="addToCart(${b.id})" ${b.stock === 0 ? 'disabled' : ''}>
+                  🛒 Add to Cart
+                </button>
+                <a href="cart.html" class="btn btn-secondary btn-lg">View Cart</a>
+              </div>
+
+              <div id="cart-alert" style="margin-top:1rem"></div>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        document.getElementById('content').innerHTML = `
+          <div class="alert alert-error">❌ ${err.message}. <a href="catalog.html">Back to catalog</a></div>`;
+      }
+    }
+
+    async function addToCart(id) {
+      if (!requireAuth()) return;
+
+      const btn = document.getElementById('add-cart-btn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Adding…';
+
+      try {
+        await apiFetch('/cart/items', {
+          method: 'POST',
+          body: JSON.stringify({ book_id: id, quantity: 1 }),
+        });
+        showToast('Added to cart!', 'success');
+        btn.textContent = '✅ Added!';
+        btn.style.background = 'var(--success)';
+        await updateCartBadge();
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.innerHTML = '🛒 Add to Cart';
+          btn.style.background = '';
+        }, 2000);
+      } catch (err) {
+        showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = '🛒 Add to Cart';
+      }
+    }
+
+    loadBook();
+  </script>
+</body>
+</html>

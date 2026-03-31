@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Books Catalog — PageTurn</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .pagination { display:flex; gap:0.4rem; justify-content:center; margin-top:2.5rem; flex-wrap:wrap; }
+    .page-btn {
+      width:38px;height:38px;
+      border-radius:8px;
+      border:1.5px solid var(--gray-200);
+      background:var(--white);
+      font-family:'DM Sans',sans-serif;
+      font-size:0.88rem;
+      font-weight:600;
+      cursor:pointer;
+      transition:var(--transition);
+      color:var(--gray-600);
+      display:flex;align-items:center;justify-content:center;
+    }
+    .page-btn:hover { border-color:var(--blue-400); color:var(--blue-600); background:var(--blue-50); }
+    .page-btn.active { background:var(--blue-600); border-color:var(--blue-600); color:white; }
+    .page-btn:disabled { opacity:0.4; cursor:not-allowed; }
+  </style>
+</head>
+<body>
+  <script src="api.js"></script>
+  <script>renderNav('catalog');</script>
+
+  <div class="page">
+    <div class="page-header">
+      <h1>Books Catalog</h1>
+      <p>Browse our full collection of books</p>
+    </div>
+
+    <div class="filter-bar">
+      <span class="filter-label">Filter:</span>
+      <select class="filter-select" id="cat-filter">
+        <option value="">All Categories</option>
+      </select>
+      <select class="filter-select" id="sort-filter">
+        <option value="">Sort by</option>
+        <option value="price_asc">Price: Low to High</option>
+        <option value="price_desc">Price: High to Low</option>
+        <option value="title">Title A–Z</option>
+        <option value="rating">Top Rated</option>
+      </select>
+      <div class="nav-search" style="max-width:240px">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Search…" style="padding-left:2.5rem">
+      </div>
+      <span class="results-count" id="results-count"></span>
+    </div>
+
+    <div id="books-grid" class="books-grid">
+      <div class="spinner" style="grid-column:1/-1"></div>
+    </div>
+
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <script>
+    let currentPage = 1;
+    const LIMIT = 12;
+
+    const params = new URLSearchParams(window.location.search);
+    let searchVal    = params.get('search') || '';
+    let categoryVal  = params.get('category') || '';
+
+    async function loadCategories() {
+      try {
+        const data = await apiFetch('/categories');
+        const cats = data.categories || data;
+        const sel  = document.getElementById('cat-filter');
+        cats.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value   = c.name || c;
+          opt.textContent = c.name || c;
+          if (opt.value === categoryVal) opt.selected = true;
+          sel.appendChild(opt);
+        });
+      } catch {}
+    }
+
+    async function loadBooks(page = 1) {
+      currentPage = page;
+      const grid  = document.getElementById('books-grid');
+      grid.innerHTML = '<div class="spinner" style="grid-column:1/-1"></div>';
+
+      const search   = document.getElementById('search-input').value.trim() || searchVal;
+      const category = document.getElementById('cat-filter').value;
+      const sort     = document.getElementById('sort-filter').value;
+
+      const qs = new URLSearchParams({ page, limit: LIMIT });
+      if (search)   qs.set('search',   search);
+      if (category) qs.set('category', category);
+      if (sort)     qs.set('sort',     sort);
+
+      try {
+        const data  = await apiFetch(`/books?${qs}`);
+        const books = data.books || data;
+        const total = data.total || books.length;
+
+        document.getElementById('results-count').textContent = `${total} book${total !== 1 ? 's' : ''}`;
+
+        if (!books.length) {
+          grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><h3>No books found</h3><p>Try a different search or category</p></div>`;
+          document.getElementById('pagination').innerHTML = '';
+          return;
+        }
+
+        grid.innerHTML = books.map(b => `
+          <div class="book-card" onclick="window.location.href='book.html?id=${b.id}'">
+            <div class="book-cover" style="background:${bookCoverColors(b.id)}">
+              ${b.cover_url ? `<img src="${b.cover_url}" alt="${b.title}" loading="lazy">` : `<span style="font-size:3rem">${bookEmoji(b.category)}</span>`}
+            </div>
+            <div class="book-info">
+              <div class="book-category">${b.category || 'General'}</div>
+              <div class="book-title">${b.title}</div>
+              <div class="book-author">${b.author}</div>
+              <div class="book-footer">
+                <span class="book-price">${formatPrice(b.price)}</span>
+                <span class="book-rating">★ ${b.rating || '4.5'}</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        // Pagination
+        const totalPages = Math.ceil(total / LIMIT);
+        const pag = document.getElementById('pagination');
+        if (totalPages <= 1) { pag.innerHTML = ''; return; }
+
+        let html = `<button class="page-btn" onclick="loadBooks(${page-1})" ${page<=1?'disabled':''}>‹</button>`;
+        for (let p = 1; p <= totalPages; p++) {
+          if (p === 1 || p === totalPages || Math.abs(p - page) <= 2)
+            html += `<button class="page-btn ${p===page?'active':''}" onclick="loadBooks(${p})">${p}</button>`;
+          else if (Math.abs(p - page) === 3)
+            html += `<span style="align-self:center;color:var(--gray-400)">…</span>`;
+        }
+        html += `<button class="page-btn" onclick="loadBooks(${page+1})" ${page>=totalPages?'disabled':''}>›</button>`;
+        pag.innerHTML = html;
+      } catch (err) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔌</div><h3>Could not load books</h3><p>${err.message}</p></div>`;
+      }
+    }
+
+    // Pre-fill search from URL
+    document.addEventListener('DOMContentLoaded', () => {
+      if (searchVal) document.getElementById('search-input').value = searchVal;
+    });
+
+    // Event listeners
+    let searchTimer;
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('search-input').addEventListener('input', () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => loadBooks(1), 400);
+      });
+      document.getElementById('cat-filter').addEventListener('change', () => loadBooks(1));
+      document.getElementById('sort-filter').addEventListener('change', () => loadBooks(1));
+    });
+
+    loadCategories();
+    loadBooks(1);
+  </script>
+</body>
+</html>

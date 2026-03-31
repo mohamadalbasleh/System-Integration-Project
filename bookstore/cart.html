@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopping Cart — PageTurn</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <script src="api.js"></script>
+  <script>renderNav('cart');</script>
+
+  <div class="page">
+    <div class="page-header">
+      <h1>🛒 Shopping Cart</h1>
+      <p>Review your items before checkout</p>
+    </div>
+
+    <div id="cart-content">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <script>
+    if (!requireAuth()) { /* redirect handled */ }
+
+    let cartItems = [];
+
+    async function loadCart() {
+      const el = document.getElementById('cart-content');
+      el.innerHTML = '<div class="spinner"></div>';
+
+      try {
+        const data = await apiFetch('/cart');
+        cartItems = data.items || [];
+        renderCart();
+      } catch (err) {
+        el.innerHTML = `<div class="alert alert-error">❌ ${err.message}</div>`;
+      }
+    }
+
+    function renderCart() {
+      const el = document.getElementById('cart-content');
+
+      if (!cartItems.length) {
+        el.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🛒</div>
+            <h3>Your cart is empty</h3>
+            <p>Browse our collection and add some books!</p>
+            <a href="catalog.html" class="btn btn-primary" style="margin-top:1.2rem">Browse Books</a>
+          </div>`;
+        return;
+      }
+
+      const subtotal = cartItems.reduce((s, i) => s + parseFloat(i.price || i.book?.price || 0) * (i.quantity || 1), 0);
+      const shipping = subtotal > 0 ? (subtotal >= 30 ? 0 : 4.99) : 0;
+      const total    = subtotal + shipping;
+
+      el.innerHTML = `
+        <div class="cart-layout">
+          <div id="cart-items">
+            ${cartItems.map(item => {
+              const book   = item.book || item;
+              const price  = parseFloat(item.price || book.price || 0);
+              const qty    = item.quantity || 1;
+              const itemId = item.id || item.cart_item_id;
+              const bookId = item.book_id || book.id;
+              return `
+                <div class="cart-item" id="item-${itemId}">
+                  <div class="cart-item-cover" style="background:${bookCoverColors(bookId)}">
+                    ${bookEmoji(book.category)}
+                  </div>
+                  <div class="cart-item-info">
+                    <div class="cart-item-title">${book.title || 'Book'}</div>
+                    <div class="cart-item-author">${book.author || ''}</div>
+                    <div class="cart-item-price">${formatPrice(price * qty)}</div>
+                    <div style="font-size:0.8rem;color:var(--gray-400);">${formatPrice(price)} each</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.8rem">
+                    <div class="cart-item-qty">
+                      <button class="qty-btn" onclick="changeQty(${itemId}, ${qty - 1})" ${qty<=1?'disabled':''}>−</button>
+                      <span class="qty-num">${qty}</span>
+                      <button class="qty-btn" onclick="changeQty(${itemId}, ${qty + 1})">+</button>
+                    </div>
+                    <button class="btn btn-sm" style="background:none;color:var(--danger);padding:0.2rem 0.5rem;font-size:0.82rem" onclick="removeItem(${itemId})">
+                      🗑 Remove
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <div>
+            <div class="cart-summary">
+              <div class="summary-title">Order Summary</div>
+
+              ${cartItems.map(item => {
+                const book  = item.book || item;
+                const price = parseFloat(item.price || book.price || 0);
+                const qty   = item.quantity || 1;
+                return `
+                  <div class="summary-row">
+                    <span>${book.title?.substring(0,22)}${(book.title||'').length>22?'…':''} ×${qty}</span>
+                    <span class="val">${formatPrice(price * qty)}</span>
+                  </div>
+                `;
+              }).join('')}
+
+              <div class="summary-row">
+                <span>Subtotal</span>
+                <span class="val">${formatPrice(subtotal)}</span>
+              </div>
+              <div class="summary-row">
+                <span>Shipping</span>
+                <span class="val">${shipping === 0 ? '<span style="color:var(--success)">FREE</span>' : formatPrice(shipping)}</span>
+              </div>
+              ${shipping > 0 ? `<div style="font-size:0.78rem;color:var(--gray-400);margin-top:-0.4rem;margin-bottom:0.4rem">Free shipping on orders over $30</div>` : ''}
+              <div class="summary-row total">
+                <span>Total</span>
+                <span class="val">${formatPrice(total)}</span>
+              </div>
+
+              <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:1.2rem;padding:0.85rem" onclick="proceedCheckout()">
+                Proceed to Checkout →
+              </button>
+              <a href="catalog.html" class="btn btn-secondary" style="width:100%;justify-content:center;margin-top:0.6rem">
+                ← Continue Shopping
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function changeQty(itemId, newQty) {
+      if (newQty < 1) { removeItem(itemId); return; }
+      try {
+        await apiFetch(`/cart/items/${itemId}`, {
+          method: 'PUT',
+          body: JSON.stringify({ quantity: newQty }),
+        });
+        const item = cartItems.find(i => (i.id || i.cart_item_id) === itemId);
+        if (item) item.quantity = newQty;
+        renderCart();
+        updateCartBadge();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function removeItem(itemId) {
+      const el = document.getElementById(`item-${itemId}`);
+      if (el) { el.style.opacity = '0.4'; el.style.pointerEvents = 'none'; }
+      try {
+        await apiFetch(`/cart/items/${itemId}`, { method: 'DELETE' });
+        cartItems = cartItems.filter(i => (i.id || i.cart_item_id) !== itemId);
+        renderCart();
+        showToast('Item removed from cart', 'info');
+        updateCartBadge();
+      } catch (err) {
+        showToast(err.message, 'error');
+        if (el) { el.style.opacity = '1'; el.style.pointerEvents = ''; }
+      }
+    }
+
+    function proceedCheckout() {
+      if (!cartItems.length) { showToast('Your cart is empty', 'error'); return; }
+      window.location.href = 'checkout.html';
+    }
+
+    loadCart();
+  </script>
+</body>
+</html>

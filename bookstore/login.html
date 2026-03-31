@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — PageTurn</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <script src="api.js"></script>
+
+  <div id="toast-container"></div>
+
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="brand-icon">📚</div>
+        <span class="brand-name">PageTurn</span>
+      </div>
+
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-subtitle">Sign in to your account to continue</p>
+
+      <div id="login-error" class="alert alert-error" style="display:none"></div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email Address</label>
+        <input class="form-control" type="email" id="email" placeholder="you@example.com" autocomplete="email">
+        <span class="form-error" id="email-err">Please enter a valid email</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <div style="position:relative">
+          <input class="form-control" type="password" id="password" placeholder="••••••••" autocomplete="current-password" style="padding-right:3rem">
+          <button type="button" id="toggle-pw" onclick="togglePassword()" style="position:absolute;right:0.9rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--gray-400)">👁️</button>
+        </div>
+        <span class="form-error" id="pw-err">Password is required</span>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.85rem;font-size:1rem;margin-top:0.5rem" id="login-btn" onclick="handleLogin()">
+        Sign In
+      </button>
+
+      <div class="divider"><span>or</span></div>
+
+      <div class="auth-footer">
+        Don't have an account? <a href="register.html">Create one</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Redirect if already logged in
+    if (Auth.isLoggedIn()) window.location.href = 'index.html';
+
+    function togglePassword() {
+      const pw = document.getElementById('password');
+      const btn = document.getElementById('toggle-pw');
+      if (pw.type === 'password') { pw.type = 'text'; btn.textContent = '🙈'; }
+      else { pw.type = 'password'; btn.textContent = '👁️'; }
+    }
+
+    function validate() {
+      let valid = true;
+      const email = document.getElementById('email').value.trim();
+      const pw    = document.getElementById('password').value;
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        document.getElementById('email-err').classList.add('show');
+        document.getElementById('email').classList.add('error');
+        valid = false;
+      } else {
+        document.getElementById('email-err').classList.remove('show');
+        document.getElementById('email').classList.remove('error');
+      }
+
+      if (!pw) {
+        document.getElementById('pw-err').classList.add('show');
+        document.getElementById('password').classList.add('error');
+        valid = false;
+      } else {
+        document.getElementById('pw-err').classList.remove('show');
+        document.getElementById('password').classList.remove('error');
+      }
+      return valid;
+    }
+
+    async function handleLogin() {
+      if (!validate()) return;
+
+      const btn   = document.getElementById('login-btn');
+      const errEl = document.getElementById('login-error');
+      errEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = '⏳ Signing in…';
+
+      try {
+        const data = await apiFetch('/users/login', {
+          method: 'POST',
+          body: JSON.stringify({
+            email:    document.getElementById('email').value.trim(),
+            password: document.getElementById('password').value,
+          }),
+        });
+
+        Auth.setToken(data.token || data.access_token);
+        Auth.setUser(data.user || { email: document.getElementById('email').value.trim(), name: data.name });
+
+        showToast('Login successful! Redirecting…', 'success');
+
+        const next = new URLSearchParams(window.location.search).get('next') || 'index.html';
+        setTimeout(() => window.location.href = next, 800);
+      } catch (err) {
+        errEl.textContent = `❌ ${err.message}`;
+        errEl.style.display = 'flex';
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+      }
+    }
+
+    // Allow Enter key to submit
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleLogin();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account — PageTurn</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .strength-bar { display:flex; gap:4px; margin-top:0.5rem; }
+    .strength-seg {
+      height:4px; flex:1; border-radius:2px;
+      background:var(--gray-200); transition:background 0.3s;
+    }
+    .strength-seg.weak   { background:#ef4444; }
+    .strength-seg.medium { background:var(--accent); }
+    .strength-seg.strong { background:var(--success); }
+    .strength-label { font-size:0.78rem; margin-top:0.3rem; color:var(--gray-400); }
+  </style>
+</head>
+<body>
+  <script src="api.js"></script>
+  <div id="toast-container"></div>
+
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="brand-icon">📚</div>
+        <span class="brand-name">PageTurn</span>
+      </div>
+
+      <h1 class="auth-title">Create account</h1>
+      <p class="auth-subtitle">Join thousands of readers today</p>
+
+      <div id="reg-error" class="alert alert-error" style="display:none"></div>
+
+      <div class="form-group">
+        <label class="form-label" for="name">Full Name</label>
+        <input class="form-control" type="text" id="name" placeholder="John Smith" autocomplete="name">
+        <span class="form-error" id="name-err">Name must be at least 2 characters</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email Address</label>
+        <input class="form-control" type="email" id="email" placeholder="you@example.com" autocomplete="email">
+        <span class="form-error" id="email-err">Please enter a valid email</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <div style="position:relative">
+          <input class="form-control" type="password" id="password" placeholder="Min. 8 characters" autocomplete="new-password" style="padding-right:3rem" oninput="checkStrength()">
+          <button type="button" onclick="togglePw('password','eye1')" id="eye1" style="position:absolute;right:0.9rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--gray-400)">👁️</button>
+        </div>
+        <div class="strength-bar">
+          <div class="strength-seg" id="s1"></div>
+          <div class="strength-seg" id="s2"></div>
+          <div class="strength-seg" id="s3"></div>
+          <div class="strength-seg" id="s4"></div>
+        </div>
+        <div class="strength-label" id="strength-label">Enter a password</div>
+        <span class="form-error" id="pw-err">Password must be at least 8 characters</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="confirm-pw">Confirm Password</label>
+        <div style="position:relative">
+          <input class="form-control" type="password" id="confirm-pw" placeholder="Repeat password" autocomplete="new-password" style="padding-right:3rem">
+          <button type="button" onclick="togglePw('confirm-pw','eye2')" id="eye2" style="position:absolute;right:0.9rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--gray-400)">👁️</button>
+        </div>
+        <span class="form-error" id="cpw-err">Passwords do not match</span>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.85rem;font-size:1rem;margin-top:0.3rem" id="reg-btn" onclick="handleRegister()">
+        Create Account
+      </button>
+
+      <div class="divider"><span>or</span></div>
+      <div class="auth-footer">
+        Already have an account? <a href="login.html">Sign in</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if (Auth.isLoggedIn()) window.location.href = 'index.html';
+
+    function togglePw(fieldId, btnId) {
+      const f = document.getElementById(fieldId);
+      const b = document.getElementById(btnId);
+      if (f.type === 'password') { f.type = 'text'; b.textContent = '🙈'; }
+      else { f.type = 'password'; b.textContent = '👁️'; }
+    }
+
+    function checkStrength() {
+      const pw = document.getElementById('password').value;
+      const segs = [document.getElementById('s1'),document.getElementById('s2'),document.getElementById('s3'),document.getElementById('s4')];
+      const lbl  = document.getElementById('strength-label');
+
+      let score = 0;
+      if (pw.length >= 8)  score++;
+      if (/[A-Z]/.test(pw)) score++;
+      if (/[0-9]/.test(pw)) score++;
+      if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+      const cls = score <= 1 ? 'weak' : score <= 2 ? 'medium' : 'strong';
+      const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+      segs.forEach((s, i) => { s.className = 'strength-seg'; if (i < score) s.classList.add(cls); });
+      lbl.textContent = pw ? labels[score] || 'Very Strong' : 'Enter a password';
+      lbl.style.color = cls === 'weak' ? '#ef4444' : cls === 'medium' ? 'var(--accent)' : 'var(--success)';
+    }
+
+    function validate() {
+      let valid = true;
+      const name  = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const pw    = document.getElementById('password').value;
+      const cpw   = document.getElementById('confirm-pw').value;
+
+      const setErr = (id, fieldId, show) => {
+        document.getElementById(id).classList.toggle('show', show);
+        document.getElementById(fieldId).classList.toggle('error', show);
+        if (show) valid = false;
+      };
+
+      setErr('name-err',  'name',       name.length < 2);
+      setErr('email-err', 'email',      !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+      setErr('pw-err',    'password',   pw.length < 8);
+      setErr('cpw-err',   'confirm-pw', pw !== cpw);
+
+      return valid;
+    }
+
+    async function handleRegister() {
+      if (!validate()) return;
+
+      const btn   = document.getElementById('reg-btn');
+      const errEl = document.getElementById('reg-error');
+      errEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = '⏳ Creating account…';
+
+      try {
+        const data = await apiFetch('/users/register', {
+          method: 'POST',
+          body: JSON.stringify({
+            name:     document.getElementById('name').value.trim(),
+            email:    document.getElementById('email').value.trim(),
+            password: document.getElementById('password').value,
+          }),
+        });
+
+        // Auto-login after register if token returned
+        if (data.token || data.access_token) {
+          Auth.setToken(data.token || data.access_token);
+          Auth.setUser(data.user || { name: document.getElementById('name').value.trim(), email: document.getElementById('email').value.trim() });
+        }
+
+        showToast('Account created! Redirecting…', 'success');
+        setTimeout(() => window.location.href = 'index.html', 900);
+      } catch (err) {
+        errEl.textContent = `❌ ${err.message}`;
+        errEl.style.display = 'flex';
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') handleRegister(); });
+  </script>
+</body>
+</html>

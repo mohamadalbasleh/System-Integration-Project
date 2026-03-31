@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — PageTurn</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .checkout-layout { display:grid; grid-template-columns:1fr 360px; gap:2rem; }
+    .checkout-card {
+      background:var(--white);
+      border-radius:var(--radius-lg);
+      padding:2rem;
+      border:1px solid var(--gray-200);
+      box-shadow:var(--shadow-sm);
+      margin-bottom:1.5rem;
+    }
+    .checkout-card h2 {
+      font-family:'Playfair Display',serif;
+      font-size:1.2rem;
+      font-weight:700;
+      color:var(--blue-900);
+      margin-bottom:1.3rem;
+      padding-bottom:0.8rem;
+      border-bottom:1px solid var(--gray-200);
+    }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .step-badge {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:28px;height:28px; border-radius:50%;
+      background:var(--blue-600); color:white;
+      font-size:0.82rem; font-weight:700; margin-right:0.5rem;
+    }
+    @media(max-width:900px){ .checkout-layout{grid-template-columns:1fr;} .form-row{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+  <script src="api.js"></script>
+  <script>renderNav('cart');</script>
+
+  <div class="page">
+    <div class="breadcrumb">
+      <a href="index.html">Home</a> › <a href="cart.html">Cart</a> › <span>Checkout</span>
+    </div>
+
+    <div class="page-header">
+      <h1>Checkout</h1>
+    </div>
+
+    <div id="checkout-content">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <script>
+    if (!requireAuth()) { /* redirect handled */ }
+
+    let cartItems = [];
+
+    async function loadCheckout() {
+      try {
+        const data = await apiFetch('/cart');
+        cartItems = data.items || [];
+
+        if (!cartItems.length) {
+          document.getElementById('checkout-content').innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">🛒</div>
+              <h3>Your cart is empty</h3>
+              <p>Add some books before checking out</p>
+              <a href="catalog.html" class="btn btn-primary" style="margin-top:1.2rem">Browse Books</a>
+            </div>`;
+          return;
+        }
+
+        renderCheckout();
+      } catch (err) {
+        document.getElementById('checkout-content').innerHTML = `<div class="alert alert-error">❌ ${err.message}</div>`;
+      }
+    }
+
+    function renderCheckout() {
+      const subtotal = cartItems.reduce((s, i) => s + parseFloat(i.price || i.book?.price || 0) * (i.quantity || 1), 0);
+      const shipping = subtotal >= 30 ? 0 : 4.99;
+      const total    = subtotal + shipping;
+      const user     = Auth.getUser();
+
+      document.getElementById('checkout-content').innerHTML = `
+        <div class="checkout-layout">
+          <div>
+            <!-- Shipping -->
+            <div class="checkout-card">
+              <h2><span class="step-badge">1</span> Shipping Information</h2>
+              <div id="shipping-error" class="alert alert-error" style="display:none"></div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">First Name</label>
+                  <input class="form-control" id="first-name" placeholder="John" value="${(user?.name||'').split(' ')[0]||''}">
+                  <span class="form-error" id="fn-err">Required</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Last Name</label>
+                  <input class="form-control" id="last-name" placeholder="Smith" value="${(user?.name||'').split(' ').slice(1).join(' ')||''}">
+                  <span class="form-error" id="ln-err">Required</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Address</label>
+                <input class="form-control" id="address" placeholder="123 Main Street">
+                <span class="form-error" id="addr-err">Required</span>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">City</label>
+                  <input class="form-control" id="city" placeholder="Doha">
+                  <span class="form-error" id="city-err">Required</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Country</label>
+                  <input class="form-control" id="country" placeholder="Qatar" value="Qatar">
+                </div>
+              </div>
+            </div>
+
+            <!-- Payment note -->
+            <div class="checkout-card">
+              <h2><span class="step-badge">2</span> Payment</h2>
+              <div class="alert alert-info">
+                💳 Payment processing is handled securely. For this demo, orders are placed directly.
+              </div>
+              <div class="form-group">
+                <label class="form-label">Card Number</label>
+                <input class="form-control" placeholder="4242 4242 4242 4242" maxlength="19" oninput="formatCard(this)" id="card-num">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Expiry</label>
+                  <input class="form-control" placeholder="MM/YY" maxlength="5" oninput="formatExpiry(this)" id="card-exp">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">CVV</label>
+                  <input class="form-control" placeholder="123" maxlength="3" type="password" id="card-cvv">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Summary -->
+          <div>
+            <div class="cart-summary" style="position:sticky;top:88px">
+              <div class="summary-title">Your Order</div>
+              ${cartItems.map(item => {
+                const book  = item.book || item;
+                const price = parseFloat(item.price || book.price || 0);
+                const qty   = item.quantity || 1;
+                return `
+                  <div style="display:flex;gap:0.7rem;align-items:center;margin-bottom:0.8rem">
+                    <div style="width:40px;height:52px;border-radius:6px;background:${bookCoverColors(book.id)};display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">${bookEmoji(book.category)}</div>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:0.85rem;font-weight:600;color:var(--blue-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${book.title}</div>
+                      <div style="font-size:0.78rem;color:var(--gray-400)">Qty: ${qty}</div>
+                    </div>
+                    <span style="font-weight:700;font-size:0.9rem;color:var(--blue-700)">${formatPrice(price * qty)}</span>
+                  </div>
+                `;
+              }).join('')}
+
+              <div style="border-top:1px solid var(--gray-200);padding-top:1rem;margin-top:0.5rem">
+                <div class="summary-row"><span>Subtotal</span><span class="val">${formatPrice(subtotal)}</span></div>
+                <div class="summary-row"><span>Shipping</span><span class="val">${shipping===0?'<span style="color:var(--success)">FREE</span>':formatPrice(shipping)}</span></div>
+                <div class="summary-row total"><span>Total</span><span class="val">${formatPrice(total)}</span></div>
+              </div>
+
+              <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:1.2rem;padding:0.9rem;font-size:1rem" id="place-order-btn" onclick="placeOrder()">
+                Place Order — ${formatPrice(total)}
+              </button>
+              <a href="cart.html" class="btn btn-secondary" style="width:100%;justify-content:center;margin-top:0.6rem">← Edit Cart</a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function formatCard(el) {
+      let v = el.value.replace(/\D/g,'').substring(0,16);
+      el.value = v.replace(/(.{4})/g,'$1 ').trim();
+    }
+    function formatExpiry(el) {
+      let v = el.value.replace(/\D/g,'');
+      if (v.length >= 2) v = v.substring(0,2)+'/'+v.substring(2,4);
+      el.value = v;
+    }
+
+    function validateShipping() {
+      let valid = true;
+      ['first-name','last-name','address','city'].forEach((id, i) => {
+        const errIds = ['fn-err','ln-err','addr-err','city-err'];
+        const empty = !document.getElementById(id)?.value.trim();
+        document.getElementById(errIds[i])?.classList.toggle('show', empty);
+        document.getElementById(id)?.classList.toggle('error', empty);
+        if (empty) valid = false;
+      });
+      return valid;
+    }
+
+    async function placeOrder() {
+      if (!validateShipping()) { showToast('Please fill in all shipping details', 'error'); return; }
+
+      const btn = document.getElementById('place-order-btn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Placing order…';
+
+      const address = [
+        document.getElementById('first-name').value.trim(),
+        document.getElementById('last-name').value.trim(),
+        '—',
+        document.getElementById('address').value.trim(),
+        document.getElementById('city').value.trim(),
+        document.getElementById('country').value.trim(),
+      ].join(', ');
+
+      try {
+        const data = await apiFetch('/orders', {
+          method: 'POST',
+          body: JSON.stringify({ shipping_address: address }),
+        });
+
+        window.location.href = `orders.html?success=1&order_id=${data.order_id || data.id || ''}`;
+      } catch (err) {
+        showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = `Place Order`;
+      }
+    }
+
+    loadCheckout();
+  </script>
+</body>
+</html>

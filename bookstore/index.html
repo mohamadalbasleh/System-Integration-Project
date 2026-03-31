@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PageTurn — Online Bookstore</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .categories-row {
+      display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 2.5rem;
+    }
+    .cat-chip {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.5rem 1.1rem;
+      background: var(--white);
+      border: 1.5px solid var(--gray-200);
+      border-radius: 50px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--gray-600);
+      cursor: pointer;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .cat-chip:hover { background: var(--blue-600); border-color: var(--blue-600); color: white; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2rem;
+      margin-bottom: 2.5rem;
+    }
+    .stat-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 1.5rem 1.3rem;
+      text-align: center;
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+    }
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--blue-700);
+      line-height: 1;
+      margin-bottom: 0.3rem;
+    }
+    .stat-label { font-size: 0.85rem; color: var(--gray-600); font-weight: 500; }
+  </style>
+</head>
+<body>
+  <script src="api.js"></script>
+  <script>renderNav('home');</script>
+
+  <div class="page">
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-text">
+        <h1>Your Next Great<br>Read Awaits</h1>
+        <p>Discover thousands of books across every genre. Browse, explore, and order securely.</p>
+        <div style="display:flex;gap:0.8rem;flex-wrap:wrap">
+          <a href="catalog.html" class="btn btn-primary btn-lg">Browse Catalog</a>
+          <a href="register.html" class="btn" style="background:rgba(255,255,255,0.15);color:white;border:1.5px solid rgba(255,255,255,0.3);padding:0.8rem 1.8rem;border-radius:10px;font-size:1rem;font-weight:600">Create Account</a>
+        </div>
+      </div>
+      <div class="hero-icon">📚</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row" id="stats-row">
+      <div class="stat-card"><div class="stat-num" id="stat-books">—</div><div class="stat-label">Books Available</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-cats">—</div><div class="stat-label">Categories</div></div>
+      <div class="stat-card"><div class="stat-num">⭐ 4.8</div><div class="stat-label">Avg. Rating</div></div>
+    </div>
+
+    <!-- Categories -->
+    <div class="section-header">
+      <h2>Browse by Category</h2>
+      <a href="catalog.html" class="btn btn-secondary btn-sm">View All →</a>
+    </div>
+    <div class="categories-row" id="categories-row">
+      <div class="spinner" style="margin:1rem auto;width:28px;height:28px;border-width:2px"></div>
+    </div>
+
+    <!-- Featured Books -->
+    <div class="section-header">
+      <h2>Featured Books</h2>
+      <a href="catalog.html" class="btn btn-secondary btn-sm">View All →</a>
+    </div>
+    <div id="featured-books" class="books-grid">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <script>
+    async function loadHome() {
+      try {
+        // load categories
+        const catData = await apiFetch('/categories');
+        const categories = catData.categories || catData;
+        document.getElementById('stat-cats').textContent = categories.length;
+
+        const catRow = document.getElementById('categories-row');
+        catRow.innerHTML = categories.map(c => `
+          <a class="cat-chip" href="catalog.html?category=${encodeURIComponent(c.name || c)}">
+            ${bookEmoji(c.name || c)} ${c.name || c}
+          </a>
+        `).join('');
+      } catch {
+        document.getElementById('categories-row').innerHTML = '<span style="color:var(--gray-400);font-size:0.9rem">Categories unavailable</span>';
+      }
+
+      try {
+        // load featured books
+        const bookData = await apiFetch('/books?limit=8');
+        const books = bookData.books || bookData;
+        document.getElementById('stat-books').textContent = bookData.total || books.length;
+
+        const grid = document.getElementById('featured-books');
+        if (!books.length) {
+          grid.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><h3>No books yet</h3><p>Check back soon!</p></div>`;
+          return;
+        }
+        grid.innerHTML = books.map((b, idx) => `
+          <div class="book-card" onclick="window.location.href='book.html?id=${b.id}'">
+            <div class="book-cover" style="background:${bookCoverColors(b.id)}">
+              ${b.cover_url ? `<img src="${b.cover_url}" alt="${b.title}" loading="lazy">` : `<span style="font-size:3rem">${bookEmoji(b.category)}</span>`}
+              ${idx < 3 ? '<span class="book-badge">Featured</span>' : ''}
+            </div>
+            <div class="book-info">
+              <div class="book-category">${b.category || 'General'}</div>
+              <div class="book-title">${b.title}</div>
+              <div class="book-author">${b.author}</div>
+              <div class="book-footer">
+                <span class="book-price">${formatPrice(b.price)}</span>
+                <span class="book-rating">★ ${b.rating || '4.5'}</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } catch {
+        document.getElementById('featured-books').innerHTML = `
+          <div class="empty-state" style="grid-column:1/-1">
+            <div class="empty-icon">🔌</div>
+            <h3>Backend not connected</h3>
+            <p>Start the Flask server at localhost:5000 to see books</p>
+          </div>`;
+      }
+    }
+    loadHome();
+  </script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders — PageTurn</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <script src="api.js"></script>
+  <script>renderNav('orders');</script>
+
+  <div class="page">
+
+    <!-- Success banner (shown after checkout) -->
+    <div id="success-banner" style="display:none" class="alert alert-success" style="margin-bottom:1.5rem">
+      🎉 Your order has been placed successfully! Thank you for shopping with PageTurn.
+    </div>
+
+    <div class="page-header">
+      <h1>📦 My Orders</h1>
+      <p>Track your order history</p>
+    </div>
+
+    <div id="orders-content">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <script>
+    if (!requireAuth()) { /* redirect handled */ }
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success')) {
+      const banner = document.getElementById('success-banner');
+      banner.style.display = 'flex';
+      banner.style.marginBottom = '1.5rem';
+      // Clean URL
+      window.history.replaceState({}, '', 'orders.html');
+    }
+
+    async function loadOrders() {
+      const el = document.getElementById('orders-content');
+      try {
+        const data   = await apiFetch('/orders');
+        const orders = data.orders || data;
+
+        if (!orders.length) {
+          el.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">📦</div>
+              <h3>No orders yet</h3>
+              <p>Place your first order to see it here</p>
+              <a href="catalog.html" class="btn btn-primary" style="margin-top:1.2rem">Browse Books</a>
+            </div>`;
+          return;
+        }
+
+        el.innerHTML = orders.map(order => {
+          const items     = order.items || [];
+          const statusCls = {
+            pending:'status-pending', confirmed:'status-confirmed',
+            shipped:'status-shipped', delivered:'status-delivered',
+          }[order.status?.toLowerCase()] || 'status-pending';
+
+          return `
+            <div class="order-card">
+              <div class="order-header">
+                <div>
+                  <div class="order-id">Order #${order.id}</div>
+                  <div style="font-size:0.8rem;color:var(--gray-400);margin-top:0.1rem">${order.created_at ? formatDate(order.created_at) : ''}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:1rem">
+                  <span style="font-weight:700;color:var(--blue-700)">${formatPrice(order.total || order.total_price || 0)}</span>
+                  <span class="order-status ${statusCls}">${order.status || 'Pending'}</span>
+                </div>
+              </div>
+
+              <div class="order-body">
+                ${order.shipping_address ? `
+                  <div style="font-size:0.83rem;color:var(--gray-500);margin-bottom:0.8rem">
+                    📍 ${order.shipping_address}
+                  </div>` : ''}
+
+                ${items.length ? `
+                  <div style="display:flex;flex-wrap:wrap;gap:0.6rem">
+                    ${items.map(item => {
+                      const book   = item.book || item;
+                      const price  = parseFloat(item.price || book.price || 0);
+                      const qty    = item.quantity || 1;
+                      return `
+                        <div style="display:flex;align-items:center;gap:0.6rem;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:0.5rem 0.8rem;">
+                          <span style="font-size:1.2rem">${bookEmoji(book.category)}</span>
+                          <div>
+                            <div style="font-size:0.85rem;font-weight:600;color:var(--blue-900)">${book.title || 'Book'}</div>
+                            <div style="font-size:0.77rem;color:var(--gray-500)">Qty: ${qty} · ${formatPrice(price * qty)}</div>
+                          </div>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                ` : `<p style="font-size:0.88rem;color:var(--gray-400)">No item details available</p>`}
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        el.innerHTML = `<div class="alert alert-error">❌ ${err.message}</div>`;
+      }
+    }
+
+    loadOrders();
+  </script>
+</body>
+</html>
