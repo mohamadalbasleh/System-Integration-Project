@@ -1,0 +1,835 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Length 1286 >>
+stream
+BT
+/F1 11 Tf
+40 800 Td
+14 TL
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(API Documentation Report - Online Bookstore) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(API Documentation Report) Tj
+T*
+() Tj
+T*
+(System: Online Bookstore) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Purpose: This report documents the REST API contract required by the approved ER diagram and) Tj
+T*
+(the Phase 1 frontend. The documented version is the corrected target contract, not the) Tj
+T*
+(incomplete zipped backend as received.) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(System Overview) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Base URLhttp://localhost:5000/api) Tj
+T*
+() Tj
+T*
+(DatabasePostgreSQL) Tj
+T*
+() Tj
+T*
+(AuthenticationJWT Bearer token for protected routes) Tj
+T*
+() Tj
+T*
+(Main EntitiesUsers, Categories, Books, Cart, CartItems, Orders, OrderItems) Tj
+T*
+() Tj
+T*
+(Primary ClientPhase 1 frontend in the bookstore/ folder) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Authentication Rules) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(- Public endpoints: register, login, categories, book listing, book detail.) Tj
+T*
+() Tj
+T*
+(- Protected endpoints: cart and order endpoints.) Tj
+T*
+() Tj
+T*
+(- Protected requests must send Authorization: Bearer <jwt_token>.) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Endpoints) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(POST /users/register) Tj
+T*
+() Tj
+T*
+() Tj
+ET
+endstream
+endobj
+3 0 obj
+<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 2 0 R >>
+endobj
+4 0 obj
+<< /Length 1152 >>
+stream
+BT
+/F1 11 Tf
+40 800 Td
+14 TL
+(PurposeCreate a user account and initialize an empty cart.) Tj
+T*
+() Tj
+T*
+(Auth RequiredNo) Tj
+T*
+() Tj
+T*
+(Request Bodyname, email, password) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+({) Tj
+T*
+("name": "Amira Reader",) Tj
+T*
+("email": "amira.reader@example.com",) Tj
+T*
+("password": "Password123!") Tj
+T*
+(}) Tj
+T*
+() Tj
+T*
+({) Tj
+T*
+("message": "User registered successfully",) Tj
+T*
+("token": "<jwt_token>",) Tj
+T*
+("user": {) Tj
+T*
+("id": 2,) Tj
+T*
+("name": "Amira Reader",) Tj
+T*
+("email": "amira.reader@example.com",) Tj
+T*
+("created_at": "2026-04-07T10:15:00Z") Tj
+T*
+(}) Tj
+T*
+(}) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(POST /users/login) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(PurposeAuthenticate the user and issue a JWT.) Tj
+T*
+() Tj
+T*
+(Auth RequiredNo) Tj
+T*
+() Tj
+T*
+(Request Bodyemail, password) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+({) Tj
+T*
+("email": "demo@pageturn.com",) Tj
+T*
+("password": "Password123!") Tj
+T*
+(}) Tj
+T*
+() Tj
+T*
+({) Tj
+T*
+("message": "Login successful",) Tj
+T*
+("token": "<jwt_token>",) Tj
+T*
+("user": {) Tj
+T*
+("id": 1,) Tj
+T*
+("name": "Demo Reader",) Tj
+T*
+("email": "demo@pageturn.com") Tj
+T*
+(}) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 1176 >>
+stream
+BT
+/F1 11 Tf
+40 800 Td
+14 TL
+(}) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(GET /categories) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(PurposeReturn all book categories.) Tj
+T*
+() Tj
+T*
+(Auth RequiredNo) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+({) Tj
+T*
+("categories": [) Tj
+T*
+({ "id": 1, "name": "Fiction" },) Tj
+T*
+({ "id": 2, "name": "Technology" },) Tj
+T*
+({ "id": 3, "name": "Science" },) Tj
+T*
+({ "id": 4, "name": "Business" }) Tj
+T*
+(]) Tj
+T*
+(}) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(GET /books) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(PurposeReturn the book catalog with optional search, category, sort, and pagination.) Tj
+T*
+() Tj
+T*
+(Auth RequiredNo) Tj
+T*
+() Tj
+T*
+(Query Paramspage, limit, search, category, sort) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(GET /api/books?page=1&limit=12&category=Technology&sort=price_desc) Tj
+T*
+() Tj
+T*
+({) Tj
+T*
+("books": [) Tj
+T*
+({) Tj
+T*
+("id": 2,) Tj
+T*
+("title": "Clean Code",) Tj
+T*
+("author": "Robert C. Martin",) Tj
+T*
+("description": "A practical guide to writing maintainable and readable software.",) Tj
+T*
+("price": 29.99,) Tj
+T*
+("category_id": 2,) Tj
+T*
+("category": "Technology",) Tj
+T*
+("rating": 4.8,) Tj
+T*
+("pages": 464,) Tj
+T*
+("stock": 12) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 1011 >>
+stream
+BT
+/F1 11 Tf
+40 800 Td
+14 TL
+(}) Tj
+T*
+(],) Tj
+T*
+("total": 1,) Tj
+T*
+("page": 1,) Tj
+T*
+("limit": 12) Tj
+T*
+(}) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(GET /books/{book_id}) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(PurposeReturn one book for the detail page.) Tj
+T*
+() Tj
+T*
+(Auth RequiredNo) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+({) Tj
+T*
+("id": 1,) Tj
+T*
+("title": "The Great Gatsby",) Tj
+T*
+("author": "F. Scott Fitzgerald",) Tj
+T*
+("description": "A classic novel about wealth, longing, and the American dream.",) Tj
+T*
+("price": 15.0,) Tj
+T*
+("category_id": 1,) Tj
+T*
+("category": "Fiction",) Tj
+T*
+("rating": 4.7,) Tj
+T*
+("pages": 180,) Tj
+T*
+("stock": 18) Tj
+T*
+(}) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(GET /cart) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(PurposeReturn the current authenticated user's cart.) Tj
+T*
+() Tj
+T*
+(Auth RequiredYes) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+({) Tj
+T*
+("cart_id": 1,) Tj
+T*
+("user_id": 1,) Tj
+T*
+("items": [) Tj
+T*
+({) Tj
+T*
+("cart_item_id": 1,) Tj
+T*
+("book_id": 1,) Tj
+T*
+("quantity": 2,) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 940 >>
+stream
+BT
+/F1 11 Tf
+40 800 Td
+14 TL
+("price": 15.0,) Tj
+T*
+("book": {) Tj
+T*
+("id": 1,) Tj
+T*
+("title": "The Great Gatsby",) Tj
+T*
+("author": "F. Scott Fitzgerald",) Tj
+T*
+("category": "Fiction",) Tj
+T*
+("price": 15.0) Tj
+T*
+(}) Tj
+T*
+(}) Tj
+T*
+(]) Tj
+T*
+(}) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(POST /cart/items) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(PurposeAdd a book to the authenticated user's cart.) Tj
+T*
+() Tj
+T*
+(Auth RequiredYes) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+({) Tj
+T*
+("book_id": 1,) Tj
+T*
+("quantity": 1) Tj
+T*
+(}) Tj
+T*
+() Tj
+T*
+({) Tj
+T*
+("message": "Book added to cart",) Tj
+T*
+("item": {) Tj
+T*
+("cart_item_id": 1,) Tj
+T*
+("book_id": 1,) Tj
+T*
+("quantity": 1) Tj
+T*
+(}) Tj
+T*
+(}) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(PUT /cart/items/{cart_item_id}) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(PurposeUpdate item quantity in the current user's cart.) Tj
+T*
+() Tj
+T*
+(Auth RequiredYes) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+({) Tj
+T*
+("quantity": 3) Tj
+ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 10 0 R >>
+endobj
+12 0 obj
+<< /Length 1023 >>
+stream
+BT
+/F1 11 Tf
+40 800 Td
+14 TL
+(}) Tj
+T*
+() Tj
+T*
+({) Tj
+T*
+("message": "Cart item updated",) Tj
+T*
+("item": {) Tj
+T*
+("cart_item_id": 1,) Tj
+T*
+("book_id": 1,) Tj
+T*
+("quantity": 3) Tj
+T*
+(}) Tj
+T*
+(}) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(DELETE /cart/items/{cart_item_id}) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(PurposeRemove one item from the current user's cart.) Tj
+T*
+() Tj
+T*
+(Auth RequiredYes) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+({) Tj
+T*
+("message": "Item removed from cart") Tj
+T*
+(}) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(GET /orders) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(PurposeReturn the authenticated user's order history.) Tj
+T*
+() Tj
+T*
+(Auth RequiredYes) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+({) Tj
+T*
+("orders": [) Tj
+T*
+({) Tj
+T*
+("id": 1,) Tj
+T*
+("total_price": 30.0,) Tj
+T*
+("status": "confirmed",) Tj
+T*
+("shipping_address": "Amira Reader, 12 Palm Street, Doha, Qatar",) Tj
+T*
+("created_at": "2026-04-07T11:00:00Z",) Tj
+T*
+("items": [) Tj
+T*
+({) Tj
+T*
+("order_item_id": 1,) Tj
+T*
+("book_id": 1,) Tj
+T*
+("quantity": 2,) Tj
+ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 12 0 R >>
+endobj
+14 0 obj
+<< /Length 1101 >>
+stream
+BT
+/F1 11 Tf
+40 800 Td
+14 TL
+("price": 15.0,) Tj
+T*
+("book": {) Tj
+T*
+("id": 1,) Tj
+T*
+("title": "The Great Gatsby",) Tj
+T*
+("category": "Fiction") Tj
+T*
+(}) Tj
+T*
+(}) Tj
+T*
+(]) Tj
+T*
+(}) Tj
+T*
+(]) Tj
+T*
+(}) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(POST /orders) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(PurposeCheckout the current cart, create an order, create order items, and clear the cart.) Tj
+T*
+() Tj
+T*
+(Auth RequiredYes) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+({) Tj
+T*
+("shipping_address": "Amira Reader, 12 Palm Street, Doha, Qatar") Tj
+T*
+(}) Tj
+T*
+() Tj
+T*
+({) Tj
+T*
+("message": "Order created successfully",) Tj
+T*
+("order_id": 1,) Tj
+T*
+("total_price": 30.0,) Tj
+T*
+("status": "confirmed") Tj
+T*
+(}) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Notes on Database Alignment) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(- The physical schema uses the ER diagram table names and key names such as user_id, cart_id,) Tj
+T*
+(and order_id.) Tj
+T*
+() Tj
+T*
+(- The API may expose these as shorter JSON keys such as id where needed by the frontend.) Tj
+T*
+() Tj
+T*
+(- Money fields use PostgreSQL NUMERIC\(10,2\), not floating point types.) Tj
+ET
+endstream
+endobj
+15 0 obj
+<< /Type /Page /Parent 16 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 14 0 R >>
+endobj
+16 0 obj
+<< /Type /Pages /Count 7 /Kids [3 0 R 5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R] >>
+endobj
+17 0 obj
+<< /Type /Catalog /Pages 16 0 R >>
+endobj
+xref
+0 18
+0000000000 65535 f 
+0000000009 00000 n 
+0000000079 00000 n 
+0000001417 00000 n 
+0000001544 00000 n 
+0000002748 00000 n 
+0000002875 00000 n 
+0000004103 00000 n 
+0000004230 00000 n 
+0000005293 00000 n 
+0000005420 00000 n 
+0000006412 00000 n 
+0000006541 00000 n 
+0000007617 00000 n 
+0000007746 00000 n 
+0000008900 00000 n 
+0000009029 00000 n 
+0000009126 00000 n 
+trailer
+<< /Size 18 /Root 17 0 R >>
+startxref
+9177
+%%EOF

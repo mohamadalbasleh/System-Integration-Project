@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Documentation Report - Online Bookstore</title>
+  <style>
+    :root {
+      --ink: #1f2937;
+      --muted: #475569;
+      --line: #dbe3ec;
+      --panel: #f8fafc;
+      --brand: #0f4c81;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: "Segoe UI", Arial, sans-serif; color: var(--ink); margin: 0; background: white; line-height: 1.5; }
+    main { max-width: 980px; margin: 0 auto; padding: 40px 36px 64px; }
+    h1, h2, h3 { margin: 0 0 12px; }
+    h1 { font-size: 30px; color: var(--brand); }
+    h2 { font-size: 22px; margin-top: 34px; padding-bottom: 8px; border-bottom: 2px solid var(--line); }
+    h3 { font-size: 18px; margin-top: 26px; }
+    p, li { color: var(--muted); }
+    .lead { background: linear-gradient(135deg, #eff6ff, #fff7ed); border: 1px solid var(--line); padding: 18px 20px; border-radius: 12px; margin: 20px 0 28px; }
+    .meta, .endpoint-meta { width: 100%; border-collapse: collapse; margin: 14px 0 16px; }
+    .meta td, .endpoint-meta td { border: 1px solid var(--line); padding: 10px 12px; vertical-align: top; }
+    .meta td:first-child, .endpoint-meta td:first-child { width: 180px; background: var(--panel); font-weight: 700; color: var(--ink); }
+    .endpoint { page-break-inside: avoid; border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin: 18px 0; background: #fff; }
+    .badge { display: inline-block; min-width: 70px; padding: 6px 10px; border-radius: 999px; text-align: center; color: white; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
+    .post { background: #15803d; }
+    .get { background: #2563eb; }
+    .put { background: #b45309; }
+    .delete { background: #b91c1c; }
+    pre { background: #0f172a; color: #e2e8f0; padding: 14px; border-radius: 10px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; font-size: 13px; }
+    code { font-family: Consolas, monospace; }
+    .small { font-size: 13px; color: var(--muted); }
+    @media print { main { padding: 20px 24px 44px; } a { color: inherit; text-decoration: none; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>API Documentation Report</h1>
+    <p class="small">System: Online Bookstore</p>
+    <div class="lead">
+      <strong>Purpose:</strong> This report documents the REST API contract required by the approved ER diagram and the Phase 1 frontend. The documented version is the corrected target contract, not the incomplete zipped backend as received.
+    </div>
+    <h2>System Overview</h2>
+    <table class="meta">
+      <tr><td>Base URL</td><td><code>http://localhost:5000/api</code></td></tr>
+      <tr><td>Database</td><td>PostgreSQL</td></tr>
+      <tr><td>Authentication</td><td>JWT Bearer token for protected routes</td></tr>
+      <tr><td>Main Entities</td><td>Users, Categories, Books, Cart, CartItems, Orders, OrderItems</td></tr>
+      <tr><td>Primary Client</td><td>Phase 1 frontend in the <code>bookstore/</code> folder</td></tr>
+    </table>
+    <h2>Authentication Rules</h2>
+    <ul>
+      <li>Public endpoints: register, login, categories, book listing, book detail.</li>
+      <li>Protected endpoints: cart and order endpoints.</li>
+      <li>Protected requests must send <code>Authorization: Bearer &lt;jwt_token&gt;</code>.</li>
+    </ul>
+    <h2>Endpoints</h2>
+    <section class="endpoint">
+      <h3><span class="badge post">POST</span> /users/register</h3>
+      <table class="endpoint-meta">
+        <tr><td>Purpose</td><td>Create a user account and initialize an empty cart.</td></tr>
+        <tr><td>Auth Required</td><td>No</td></tr>
+        <tr><td>Request Body</td><td><code>name</code>, <code>email</code>, <code>password</code></td></tr>
+      </table>
+      <pre>{
+  "name": "Amira Reader",
+  "email": "amira.reader@example.com",
+  "password": "Password123!"
+}</pre>
+      <pre>{
+  "message": "User registered successfully",
+  "token": "&lt;jwt_token&gt;",
+  "user": {
+    "id": 2,
+    "name": "Amira Reader",
+    "email": "amira.reader@example.com",
+    "created_at": "2026-04-07T10:15:00Z"
+  }
+}</pre>
+    </section>
+    <section class="endpoint">
+      <h3><span class="badge post">POST</span> /users/login</h3>
+      <table class="endpoint-meta">
+        <tr><td>Purpose</td><td>Authenticate the user and issue a JWT.</td></tr>
+        <tr><td>Auth Required</td><td>No</td></tr>
+        <tr><td>Request Body</td><td><code>email</code>, <code>password</code></td></tr>
+      </table>
+      <pre>{
+  "email": "demo@pageturn.com",
+  "password": "Password123!"
+}</pre>
+      <pre>{
+  "message": "Login successful",
+  "token": "&lt;jwt_token&gt;",
+  "user": {
+    "id": 1,
+    "name": "Demo Reader",
+    "email": "demo@pageturn.com"
+  }
+}</pre>
+    </section>
+    <section class="endpoint">
+      <h3><span class="badge get">GET</span> /categories</h3>
+      <table class="endpoint-meta">
+        <tr><td>Purpose</td><td>Return all book categories.</td></tr>
+        <tr><td>Auth Required</td><td>No</td></tr>
+      </table>
+      <pre>{
+  "categories": [
+    { "id": 1, "name": "Fiction" },
+    { "id": 2, "name": "Technology" },
+    { "id": 3, "name": "Science" },
+    { "id": 4, "name": "Business" }
+  ]
+}</pre>
+    </section>
+    <section class="endpoint">
+      <h3><span class="badge get">GET</span> /books</h3>
+      <table class="endpoint-meta">
+        <tr><td>Purpose</td><td>Return the book catalog with optional search, category, sort, and pagination.</td></tr>
+        <tr><td>Auth Required</td><td>No</td></tr>
+        <tr><td>Query Params</td><td><code>page</code>, <code>limit</code>, <code>search</code>, <code>category</code>, <code>sort</code></td></tr>
+      </table>
+      <pre>GET /api/books?page=1&amp;limit=12&amp;category=Technology&amp;sort=price_desc</pre>
+      <pre>{
+  "books": [
+    {
+      "id": 2,
+      "title": "Clean Code",
+      "author": "Robert C. Martin",
+      "description": "A practical guide to writing maintainable and readable software.",
+      "price": 29.99,
+      "category_id": 2,
+      "category": "Technology",
+      "rating": 4.8,
+      "pages": 464,
+      "stock": 12
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "limit": 12
+}</pre>
+    </section>
+    <section class="endpoint">
+      <h3><span class="badge get">GET</span> /books/{book_id}</h3>
+      <table class="endpoint-meta">
+        <tr><td>Purpose</td><td>Return one book for the detail page.</td></tr>
+        <tr><td>Auth Required</td><td>No</td></tr>
+      </table>
+      <pre>{
+  "id": 1,
+  "title": "The Great Gatsby",
+  "author": "F. Scott Fitzgerald",
+  "description": "A classic novel about wealth, longing, and the American dream.",
+  "price": 15.0,
+  "category_id": 1,
+  "category": "Fiction",
+  "rating": 4.7,
+  "pages": 180,
+  "stock": 18
+}</pre>
+    </section>
+    <section class="endpoint">
+      <h3><span class="badge get">GET</span> /cart</h3>
+      <table class="endpoint-meta">
+        <tr><td>Purpose</td><td>Return the current authenticated user's cart.</td></tr>
+        <tr><td>Auth Required</td><td>Yes</td></tr>
+      </table>
+      <pre>{
+  "cart_id": 1,
+  "user_id": 1,
+  "items": [
+    {
+      "cart_item_id": 1,
+      "book_id": 1,
+      "quantity": 2,
+      "price": 15.0,
+      "book": {
+        "id": 1,
+        "title": "The Great Gatsby",
+        "author": "F. Scott Fitzgerald",
+        "category": "Fiction",
+        "price": 15.0
+      }
+    }
+  ]
+}</pre>
+    </section>
+    <section class="endpoint">
+      <h3><span class="badge post">POST</span> /cart/items</h3>
+      <table class="endpoint-meta">
+        <tr><td>Purpose</td><td>Add a book to the authenticated user's cart.</td></tr>
+        <tr><td>Auth Required</td><td>Yes</td></tr>
+      </table>
+      <pre>{
+  "book_id": 1,
+  "quantity": 1
+}</pre>
+      <pre>{
+  "message": "Book added to cart",
+  "item": {
+    "cart_item_id": 1,
+    "book_id": 1,
+    "quantity": 1
+  }
+}</pre>
+    </section>
+    <section class="endpoint">
+      <h3><span class="badge put">PUT</span> /cart/items/{cart_item_id}</h3>
+      <table class="endpoint-meta">
+        <tr><td>Purpose</td><td>Update item quantity in the current user's cart.</td></tr>
+        <tr><td>Auth Required</td><td>Yes</td></tr>
+      </table>
+      <pre>{
+  "quantity": 3
+}</pre>
+      <pre>{
+  "message": "Cart item updated",
+  "item": {
+    "cart_item_id": 1,
+    "book_id": 1,
+    "quantity": 3
+  }
+}</pre>
+    </section>
+    <section class="endpoint">
+      <h3><span class="badge delete">DELETE</span> /cart/items/{cart_item_id}</h3>
+      <table class="endpoint-meta">
+        <tr><td>Purpose</td><td>Remove one item from the current user's cart.</td></tr>
+        <tr><td>Auth Required</td><td>Yes</td></tr>
+      </table>
+      <pre>{
+  "message": "Item removed from cart"
+}</pre>
+    </section>
+    <section class="endpoint">
+      <h3><span class="badge get">GET</span> /orders</h3>
+      <table class="endpoint-meta">
+        <tr><td>Purpose</td><td>Return the authenticated user's order history.</td></tr>
+        <tr><td>Auth Required</td><td>Yes</td></tr>
+      </table>
+      <pre>{
+  "orders": [
+    {
+      "id": 1,
+      "total_price": 30.0,
+      "status": "confirmed",
+      "shipping_address": "Amira Reader, 12 Palm Street, Doha, Qatar",
+      "created_at": "2026-04-07T11:00:00Z",
+      "items": [
+        {
+          "order_item_id": 1,
+          "book_id": 1,
+          "quantity": 2,
+          "price": 15.0,
+          "book": {
+            "id": 1,
+            "title": "The Great Gatsby",
+            "category": "Fiction"
+          }
+        }
+      ]
+    }
+  ]
+}</pre>
+    </section>
+    <section class="endpoint">
+      <h3><span class="badge post">POST</span> /orders</h3>
+      <table class="endpoint-meta">
+        <tr><td>Purpose</td><td>Checkout the current cart, create an order, create order items, and clear the cart.</td></tr>
+        <tr><td>Auth Required</td><td>Yes</td></tr>
+      </table>
+      <pre>{
+  "shipping_address": "Amira Reader, 12 Palm Street, Doha, Qatar"
+}</pre>
+      <pre>{
+  "message": "Order created successfully",
+  "order_id": 1,
+  "total_price": 30.0,
+  "status": "confirmed"
+}</pre>
+    </section>
+    <h2>Notes on Database Alignment</h2>
+    <ul>
+      <li>The physical schema uses the ER diagram table names and key names such as <code>user_id</code>, <code>cart_id</code>, and <code>order_id</code>.</li>
+      <li>The API may expose these as shorter JSON keys such as <code>id</code> where needed by the frontend.</li>
+      <li>Money fields use PostgreSQL <code>NUMERIC(10,2)</code>, not floating point types.</li>
+    </ul>
+  </main>
+</body>
+</html>

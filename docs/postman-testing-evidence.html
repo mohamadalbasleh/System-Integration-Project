@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Postman Testing Evidence - Online Bookstore</title>
+  <style>
+    body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; color: #1f2937; background: #fff; }
+    main { max-width: 960px; margin: 0 auto; padding: 40px 36px 64px; }
+    h1, h2 { margin: 0 0 12px; }
+    h1 { color: #0f4c81; font-size: 30px; }
+    h2 { font-size: 22px; margin-top: 30px; padding-bottom: 8px; border-bottom: 2px solid #dbe3ec; }
+    .note, .block { border: 1px solid #dbe3ec; border-radius: 12px; padding: 16px 18px; background: #f8fafc; margin: 14px 0; }
+    .capture { border: 2px dashed #94a3b8; border-radius: 12px; height: 210px; display: flex; align-items: center; justify-content: center; text-align: center; color: #475569; margin: 12px 0 18px; background: white; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; }
+    td { border: 1px solid #dbe3ec; padding: 10px 12px; vertical-align: top; }
+    td:first-child { width: 220px; background: #f8fafc; font-weight: 700; }
+    pre { background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: 10px; overflow-x: auto; white-space: pre-wrap; font-size: 13px; }
+    @media print { main { padding: 20px 24px 44px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Postman Testing Evidence</h1>
+    <div class="note">
+      This document organizes the screenshots required for API testing. It also includes the SQL snapshot queries that should be run before and after each test to verify database changes in PostgreSQL.
+    </div>
+
+    <h2>How to Use This Evidence Sheet</h2>
+    <ul>
+      <li>Take one screenshot of the Postman request and response for each endpoint test.</li>
+      <li>Take one screenshot of the relevant database state before the request.</li>
+      <li>Take one screenshot of the relevant database state after the request.</li>
+      <li>Place the screenshots in the marked areas below before final submission.</li>
+    </ul>
+
+    <h2>1. Register User</h2>
+    <table>
+      <tr><td>Endpoint</td><td><code>POST /api/users/register</code></td></tr>
+      <tr><td>Before Query</td><td><code>SELECT user_id, name, email, created_at FROM users WHERE email = 'amira.reader@example.com';</code></td></tr>
+      <tr><td>After Query</td><td><code>SELECT user_id, name, email, created_at FROM users WHERE email = 'amira.reader@example.com';</code></td></tr>
+    </table>
+    <div class="capture">Insert Postman register test screenshot here</div>
+    <div class="capture">Insert database before/after register screenshots here</div>
+
+    <h2>2. List Categories</h2>
+    <table>
+      <tr><td>Endpoint</td><td><code>GET /api/categories</code></td></tr>
+      <tr><td>Database Query</td><td><code>SELECT category_id, name FROM categories ORDER BY category_id;</code></td></tr>
+    </table>
+    <div class="capture">Insert Postman categories test screenshot here</div>
+
+    <h2>3. List Books</h2>
+    <table>
+      <tr><td>Endpoint</td><td><code>GET /api/books</code></td></tr>
+      <tr><td>Database Query</td><td><code>SELECT b.book_id, b.title, c.name AS category, b.price FROM books b JOIN categories c ON c.category_id = b.category_id ORDER BY b.book_id;</code></td></tr>
+    </table>
+    <div class="capture">Insert Postman books catalog screenshot here</div>
+
+    <h2>4. Get One Book</h2>
+    <table>
+      <tr><td>Endpoint</td><td><code>GET /api/books/1</code></td></tr>
+      <tr><td>Database Query</td><td><code>SELECT * FROM books WHERE book_id = 1;</code></td></tr>
+    </table>
+    <div class="capture">Insert Postman single book screenshot here</div>
+
+    <h2>5. Login User</h2>
+    <table>
+      <tr><td>Endpoint</td><td><code>POST /api/users/login</code></td></tr>
+      <tr><td>Expected Result</td><td>JWT token returned and stored in the Postman environment.</td></tr>
+    </table>
+    <div class="capture">Insert Postman login screenshot here</div>
+
+    <h2>6. Get Cart</h2>
+    <table>
+      <tr><td>Endpoint</td><td><code>GET /api/cart</code></td></tr>
+      <tr><td>Database Query</td><td><code>SELECT c.cart_id, u.email, ci.cart_item_id, b.title, ci.quantity FROM cart c JOIN users u ON u.user_id = c.user_id LEFT JOIN cart_items ci ON ci.cart_id = c.cart_id LEFT JOIN books b ON b.book_id = ci.book_id WHERE u.email = 'demo@pageturn.com';</code></td></tr>
+    </table>
+    <div class="capture">Insert Postman get cart screenshot here</div>
+
+    <h2>7. Add Item to Cart</h2>
+    <table>
+      <tr><td>Endpoint</td><td><code>POST /api/cart/items</code></td></tr>
+      <tr><td>Before Query</td><td><code>SELECT * FROM cart_items WHERE cart_id = 1 ORDER BY cart_item_id;</code></td></tr>
+      <tr><td>After Query</td><td><code>SELECT * FROM cart_items WHERE cart_id = 1 ORDER BY cart_item_id;</code></td></tr>
+    </table>
+    <div class="capture">Insert Postman add-to-cart screenshot here</div>
+    <div class="capture">Insert database before/after add-to-cart screenshots here</div>
+
+    <h2>8. Update Cart Item Quantity</h2>
+    <table>
+      <tr><td>Endpoint</td><td><code>PUT /api/cart/items/1</code></td></tr>
+      <tr><td>Before Query</td><td><code>SELECT cart_item_id, book_id, quantity FROM cart_items WHERE cart_item_id = 1;</code></td></tr>
+      <tr><td>After Query</td><td><code>SELECT cart_item_id, book_id, quantity FROM cart_items WHERE cart_item_id = 1;</code></td></tr>
+    </table>
+    <div class="capture">Insert Postman update-cart-item screenshot here</div>
+    <div class="capture">Insert database before/after update screenshots here</div>
+
+    <h2>9. Remove Cart Item</h2>
+    <table>
+      <tr><td>Endpoint</td><td><code>DELETE /api/cart/items/1</code></td></tr>
+      <tr><td>Before Query</td><td><code>SELECT * FROM cart_items WHERE cart_id = 1 ORDER BY cart_item_id;</code></td></tr>
+      <tr><td>After Query</td><td><code>SELECT * FROM cart_items WHERE cart_id = 1 ORDER BY cart_item_id;</code></td></tr>
+    </table>
+    <div class="capture">Insert Postman remove-cart-item screenshot here</div>
+    <div class="capture">Insert database before/after remove screenshots here</div>
+
+    <h2>10. Create Order / Checkout</h2>
+    <table>
+      <tr><td>Endpoint</td><td><code>POST /api/orders</code></td></tr>
+      <tr><td>Before Query</td><td><code>SELECT * FROM orders ORDER BY order_id DESC; SELECT * FROM order_items ORDER BY order_item_id DESC;</code></td></tr>
+      <tr><td>After Query</td><td><code>SELECT * FROM orders ORDER BY order_id DESC; SELECT * FROM order_items ORDER BY order_item_id DESC;</code></td></tr>
+    </table>
+    <div class="capture">Insert Postman checkout screenshot here</div>
+    <div class="capture">Insert database before/after checkout screenshots here</div>
+
+    <h2>11. Get Orders</h2>
+    <table>
+      <tr><td>Endpoint</td><td><code>GET /api/orders</code></td></tr>
+      <tr><td>Database Query</td><td><code>SELECT order_id, user_id, total_price, status, shipping_address, created_at FROM orders ORDER BY order_id DESC;</code></td></tr>
+    </table>
+    <div class="capture">Insert Postman get-orders screenshot here</div>
+
+    <h2>Reference SQL File</h2>
+    <div class="block">
+      The reusable snapshot queries are stored in <code>database/verification_queries.sql</code>.
+    </div>
+    <pre>SELECT user_id, name, email, created_at
+FROM users
+WHERE email = 'amira.reader@example.com';
+
+SELECT c.cart_id, u.email, ci.cart_item_id, b.title, ci.quantity, b.price
+FROM cart c
+JOIN users u ON u.user_id = c.user_id
+LEFT JOIN cart_items ci ON ci.cart_id = c.cart_id
+LEFT JOIN books b ON b.book_id = ci.book_id
+WHERE u.email = 'demo@pageturn.com'
+ORDER BY ci.cart_item_id;</pre>
+  </main>
+</body>
+</html>

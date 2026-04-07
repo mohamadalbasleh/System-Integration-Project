@@ -1,0 +1,511 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Length 1453 >>
+stream
+BT
+/F1 11 Tf
+40 800 Td
+14 TL
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Postman Testing Evidence - Online Bookstore) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Postman Testing Evidence) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(This document organizes the screenshots required for API testing. It also includes the SQL) Tj
+T*
+(snapshot queries that should be run before and after each test to verify database changes in) Tj
+T*
+(PostgreSQL.) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(How to Use This Evidence Sheet) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(- Take one screenshot of the Postman request and response for each endpoint test.) Tj
+T*
+() Tj
+T*
+(- Take one screenshot of the relevant database state before the request.) Tj
+T*
+() Tj
+T*
+(- Take one screenshot of the relevant database state after the request.) Tj
+T*
+() Tj
+T*
+(- Place the screenshots in the marked areas below before final submission.) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(1. Register User) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(EndpointPOST /api/users/register) Tj
+T*
+() Tj
+T*
+(Before QuerySELECT user_id, name, email, created_at FROM users WHERE email =) Tj
+T*
+('amira.reader@example.com';) Tj
+T*
+() Tj
+T*
+(After QuerySELECT user_id, name, email, created_at FROM users WHERE email =) Tj
+T*
+('amira.reader@example.com';) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Insert Postman register test screenshot here) Tj
+T*
+() Tj
+T*
+(Insert database before/after register screenshots here) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(2. List Categories) Tj
+ET
+endstream
+endobj
+3 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 2 0 R >>
+endobj
+4 0 obj
+<< /Length 1190 >>
+stream
+BT
+/F1 11 Tf
+40 800 Td
+14 TL
+() Tj
+T*
+() Tj
+T*
+(EndpointGET /api/categories) Tj
+T*
+() Tj
+T*
+(Database QuerySELECT category_id, name FROM categories ORDER BY category_id;) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Insert Postman categories test screenshot here) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(3. List Books) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(EndpointGET /api/books) Tj
+T*
+() Tj
+T*
+(Database QuerySELECT b.book_id, b.title, c.name AS category, b.price FROM books b JOIN) Tj
+T*
+(categories c ON c.category_id = b.category_id ORDER BY b.book_id;) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Insert Postman books catalog screenshot here) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(4. Get One Book) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(EndpointGET /api/books/1) Tj
+T*
+() Tj
+T*
+(Database QuerySELECT * FROM books WHERE book_id = 1;) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Insert Postman single book screenshot here) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(5. Login User) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(EndpointPOST /api/users/login) Tj
+T*
+() Tj
+T*
+(Expected ResultJWT token returned and stored in the Postman environment.) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Insert Postman login screenshot here) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(6. Get Cart) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(EndpointGET /api/cart) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 1630 >>
+stream
+BT
+/F1 11 Tf
+40 800 Td
+14 TL
+() Tj
+T*
+(Database QuerySELECT c.cart_id, u.email, ci.cart_item_id, b.title, ci.quantity FROM cart c JOIN) Tj
+T*
+(users u ON u.user_id = c.user_id LEFT JOIN cart_items ci ON ci.cart_id = c.cart_id LEFT JOIN) Tj
+T*
+(books b ON b.book_id = ci.book_id WHERE u.email = 'demo@pageturn.com';) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Insert Postman get cart screenshot here) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(7. Add Item to Cart) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(EndpointPOST /api/cart/items) Tj
+T*
+() Tj
+T*
+(Before QuerySELECT * FROM cart_items WHERE cart_id = 1 ORDER BY cart_item_id;) Tj
+T*
+() Tj
+T*
+(After QuerySELECT * FROM cart_items WHERE cart_id = 1 ORDER BY cart_item_id;) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Insert Postman add-to-cart screenshot here) Tj
+T*
+() Tj
+T*
+(Insert database before/after add-to-cart screenshots here) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(8. Update Cart Item Quantity) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(EndpointPUT /api/cart/items/1) Tj
+T*
+() Tj
+T*
+(Before QuerySELECT cart_item_id, book_id, quantity FROM cart_items WHERE cart_item_id = 1;) Tj
+T*
+() Tj
+T*
+(After QuerySELECT cart_item_id, book_id, quantity FROM cart_items WHERE cart_item_id = 1;) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Insert Postman update-cart-item screenshot here) Tj
+T*
+() Tj
+T*
+(Insert database before/after update screenshots here) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(9. Remove Cart Item) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(EndpointDELETE /api/cart/items/1) Tj
+T*
+() Tj
+T*
+(Before QuerySELECT * FROM cart_items WHERE cart_id = 1 ORDER BY cart_item_id;) Tj
+T*
+() Tj
+T*
+(After QuerySELECT * FROM cart_items WHERE cart_id = 1 ORDER BY cart_item_id;) Tj
+T*
+() Tj
+T*
+() Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 1559 >>
+stream
+BT
+/F1 11 Tf
+40 800 Td
+14 TL
+() Tj
+T*
+(Insert Postman remove-cart-item screenshot here) Tj
+T*
+() Tj
+T*
+(Insert database before/after remove screenshots here) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(10. Create Order / Checkout) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(EndpointPOST /api/orders) Tj
+T*
+() Tj
+T*
+(Before QuerySELECT * FROM orders ORDER BY order_id DESC; SELECT * FROM order_items ORDER BY) Tj
+T*
+(order_item_id DESC;) Tj
+T*
+() Tj
+T*
+(After QuerySELECT * FROM orders ORDER BY order_id DESC; SELECT * FROM order_items ORDER BY) Tj
+T*
+(order_item_id DESC;) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Insert Postman checkout screenshot here) Tj
+T*
+() Tj
+T*
+(Insert database before/after checkout screenshots here) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(11. Get Orders) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(EndpointGET /api/orders) Tj
+T*
+() Tj
+T*
+(Database QuerySELECT order_id, user_id, total_price, status, shipping_address, created_at FROM) Tj
+T*
+(orders ORDER BY order_id DESC;) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Insert Postman get-orders screenshot here) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(Reference SQL File) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(The reusable snapshot queries are stored in database/verification_queries.sql.) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(SELECT user_id, name, email, created_at) Tj
+T*
+(FROM users) Tj
+T*
+(WHERE email = 'amira.reader@example.com';) Tj
+T*
+() Tj
+T*
+(SELECT c.cart_id, u.email, ci.cart_item_id, b.title, ci.quantity, b.price) Tj
+T*
+(FROM cart c) Tj
+T*
+(JOIN users u ON u.user_id = c.user_id) Tj
+T*
+(LEFT JOIN cart_items ci ON ci.cart_id = c.cart_id) Tj
+T*
+(LEFT JOIN books b ON b.book_id = ci.book_id) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 106 >>
+stream
+BT
+/F1 11 Tf
+40 800 Td
+14 TL
+(WHERE u.email = 'demo@pageturn.com') Tj
+T*
+(ORDER BY ci.cart_item_id;) Tj
+ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 12 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 10 0 R >>
+endobj
+12 0 obj
+<< /Type /Pages /Count 5 /Kids [3 0 R 5 0 R 7 0 R 9 0 R 11 0 R] >>
+endobj
+13 0 obj
+<< /Type /Catalog /Pages 12 0 R >>
+endobj
+xref
+0 14
+0000000000 65535 f 
+0000000009 00000 n 
+0000000079 00000 n 
+0000001584 00000 n 
+0000001711 00000 n 
+0000002953 00000 n 
+0000003080 00000 n 
+0000004762 00000 n 
+0000004889 00000 n 
+0000006500 00000 n 
+0000006627 00000 n 
+0000006785 00000 n 
+0000006914 00000 n 
+0000006997 00000 n 
+trailer
+<< /Size 14 /Root 13 0 R >>
+startxref
+7048
+%%EOF
