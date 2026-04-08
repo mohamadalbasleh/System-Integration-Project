@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shopping Cart — PageTurn</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,7 +13,7 @@
 
   <div class="page">
     <div class="page-header">
-      <h1>🛒 Shopping Cart</h1>
+      <h1><i class="fa-solid fa-cart-shopping"></i> Shopping Cart</h1>
       <p>Review your items before checkout</p>
     </div>
 
@@ -35,7 +36,7 @@
         cartItems = data.items || [];
         renderCart();
       } catch (err) {
-        el.innerHTML = `<div class="alert alert-error">❌ ${err.message}</div>`;
+        el.innerHTML = `<div class="alert alert-error"><i class="fa-solid fa-circle-xmark"></i> ${err.message}</div>`;
       }
     }
 
@@ -45,15 +46,15 @@
       if (!cartItems.length) {
         el.innerHTML = `
           <div class="empty-state">
-            <div class="empty-icon">🛒</div>
+            <div class="empty-icon"><i class="fa-solid fa-cart-shopping"></i></div>
             <h3>Your cart is empty</h3>
             <p>Browse our collection and add some books!</p>
-            <a href="catalog.html" class="btn btn-primary" style="margin-top:1.2rem">Browse Books</a>
+            <a href="catalog.html" class="btn btn-primary" style="margin-top:1.2rem"><i class="fa-solid fa-book"></i> Browse Books</a>
           </div>`;
         return;
       }
 
-      const subtotal = cartItems.reduce((s, i) => s + parseFloat(i.price || i.book?.price || 0) * (i.quantity || 1), 0);
+      const subtotal = cartItems.reduce((s, i) => s + parseFloat(i.price || 0) * (i.quantity || 1), 0);
       const shipping = subtotal > 0 ? (subtotal >= 30 ? 0 : 4.99) : 0;
       const total    = subtotal + shipping;
 
@@ -61,30 +62,29 @@
         <div class="cart-layout">
           <div id="cart-items">
             ${cartItems.map(item => {
-              const book   = item.book || item;
-              const price  = parseFloat(item.price || book.price || 0);
+              const price  = parseFloat(item.price || 0);
               const qty    = item.quantity || 1;
               const itemId = item.id || item.cart_item_id;
-              const bookId = item.book_id || book.id;
+              const bookId = item.book_id;
               return `
                 <div class="cart-item" id="item-${itemId}">
                   <div class="cart-item-cover" style="background:${bookCoverColors(bookId)}">
-                    ${bookEmoji(book.category)}
+                    <i class="fa-solid ${categoryIcon(item.category)}"></i>
                   </div>
                   <div class="cart-item-info">
-                    <div class="cart-item-title">${book.title || 'Book'}</div>
-                    <div class="cart-item-author">${book.author || ''}</div>
+                    <div class="cart-item-title">${item.title || 'Book'}</div>
+                    <div class="cart-item-author">${item.author || ''}</div>
                     <div class="cart-item-price">${formatPrice(price * qty)}</div>
                     <div style="font-size:0.8rem;color:var(--gray-400);">${formatPrice(price)} each</div>
                   </div>
                   <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.8rem">
                     <div class="cart-item-qty">
-                      <button class="qty-btn" onclick="changeQty(${itemId}, ${qty - 1})" ${qty<=1?'disabled':''}>−</button>
+                      <button class="qty-btn" onclick="changeQty(${itemId}, ${qty - 1})" ${qty<=1?'disabled':''}>-</button>
                       <span class="qty-num">${qty}</span>
                       <button class="qty-btn" onclick="changeQty(${itemId}, ${qty + 1})">+</button>
                     </div>
                     <button class="btn btn-sm" style="background:none;color:var(--danger);padding:0.2rem 0.5rem;font-size:0.82rem" onclick="removeItem(${itemId})">
-                      🗑 Remove
+                      <i class="fa-solid fa-trash"></i> Remove
                     </button>
                   </div>
                 </div>
@@ -97,12 +97,11 @@
               <div class="summary-title">Order Summary</div>
 
               ${cartItems.map(item => {
-                const book  = item.book || item;
-                const price = parseFloat(item.price || book.price || 0);
+                const price = parseFloat(item.price || 0);
                 const qty   = item.quantity || 1;
                 return `
                   <div class="summary-row">
-                    <span>${book.title?.substring(0,22)}${(book.title||'').length>22?'…':''} ×${qty}</span>
+                    <span>${(item.title||'').substring(0,22)}${(item.title||'').length>22?'...':''} x${qty}</span>
                     <span class="val">${formatPrice(price * qty)}</span>
                   </div>
                 `;
@@ -123,10 +122,10 @@
               </div>
 
               <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:1.2rem;padding:0.85rem" onclick="proceedCheckout()">
-                Proceed to Checkout →
+                Proceed to Checkout <i class="fa-solid fa-arrow-right"></i>
               </button>
               <a href="catalog.html" class="btn btn-secondary" style="width:100%;justify-content:center;margin-top:0.6rem">
-                ← Continue Shopping
+                <i class="fa-solid fa-arrow-left"></i> Continue Shopping
               </a>
             </div>
           </div>

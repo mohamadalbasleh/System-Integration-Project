@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Books Catalog — PageTurn</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <style>
     .pagination { display:flex; gap:0.4rem; justify-content:center; margin-top:2.5rem; flex-wrap:wrap; }
@@ -36,7 +37,7 @@
     </div>
 
     <div class="filter-bar">
-      <span class="filter-label">Filter:</span>
+      <span class="filter-label"><i class="fa-solid fa-filter"></i> Filter:</span>
       <select class="filter-select" id="cat-filter">
         <option value="">All Categories</option>
       </select>
@@ -44,12 +45,12 @@
         <option value="">Sort by</option>
         <option value="price_asc">Price: Low to High</option>
         <option value="price_desc">Price: High to Low</option>
-        <option value="title">Title A–Z</option>
+        <option value="title">Title A-Z</option>
         <option value="rating">Top Rated</option>
       </select>
       <div class="nav-search" style="max-width:240px">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="search-input" placeholder="Search…" style="padding-left:2.5rem">
+        <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+        <input type="text" id="search-input" placeholder="Search..." style="padding-left:2.5rem">
       </div>
       <span class="results-count" id="results-count"></span>
     </div>
@@ -106,7 +107,7 @@
         document.getElementById('results-count').textContent = `${total} book${total !== 1 ? 's' : ''}`;
 
         if (!books.length) {
-          grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><h3>No books found</h3><p>Try a different search or category</p></div>`;
+          grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon"><i class="fa-solid fa-magnifying-glass"></i></div><h3>No books found</h3><p>Try a different search or category</p></div>`;
           document.getElementById('pagination').innerHTML = '';
           return;
         }
@@ -114,7 +115,7 @@
         grid.innerHTML = books.map(b => `
           <div class="book-card" onclick="window.location.href='book.html?id=${b.id}'">
             <div class="book-cover" style="background:${bookCoverColors(b.id)}">
-              ${b.cover_url ? `<img src="${b.cover_url}" alt="${b.title}" loading="lazy">` : `<span style="font-size:3rem">${bookEmoji(b.category)}</span>`}
+              ${b.cover_url ? `<img src="${b.cover_url}" alt="${b.title}" loading="lazy">` : `<span style="font-size:3rem"><i class="fa-solid ${categoryIcon(b.category)}"></i></span>`}
             </div>
             <div class="book-info">
               <div class="book-category">${b.category || 'General'}</div>
@@ -122,37 +123,34 @@
               <div class="book-author">${b.author}</div>
               <div class="book-footer">
                 <span class="book-price">${formatPrice(b.price)}</span>
-                <span class="book-rating">★ ${b.rating || '4.5'}</span>
+                <span class="book-rating"><i class="fa-solid fa-star"></i> ${b.rating || '4.5'}</span>
               </div>
             </div>
           </div>
         `).join('');
 
-        // Pagination
         const totalPages = Math.ceil(total / LIMIT);
         const pag = document.getElementById('pagination');
         if (totalPages <= 1) { pag.innerHTML = ''; return; }
 
-        let html = `<button class="page-btn" onclick="loadBooks(${page-1})" ${page<=1?'disabled':''}>‹</button>`;
+        let html = `<button class="page-btn" onclick="loadBooks(${page-1})" ${page<=1?'disabled':''}><i class="fa-solid fa-chevron-left"></i></button>`;
         for (let p = 1; p <= totalPages; p++) {
           if (p === 1 || p === totalPages || Math.abs(p - page) <= 2)
             html += `<button class="page-btn ${p===page?'active':''}" onclick="loadBooks(${p})">${p}</button>`;
           else if (Math.abs(p - page) === 3)
-            html += `<span style="align-self:center;color:var(--gray-400)">…</span>`;
+            html += `<span style="align-self:center;color:var(--gray-400)">...</span>`;
         }
-        html += `<button class="page-btn" onclick="loadBooks(${page+1})" ${page>=totalPages?'disabled':''}>›</button>`;
+        html += `<button class="page-btn" onclick="loadBooks(${page+1})" ${page>=totalPages?'disabled':''}><i class="fa-solid fa-chevron-right"></i></button>`;
         pag.innerHTML = html;
       } catch (err) {
-        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔌</div><h3>Could not load books</h3><p>${err.message}</p></div>`;
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon"><i class="fa-solid fa-plug-circle-xmark"></i></div><h3>Could not load books</h3><p>${err.message}</p></div>`;
       }
     }
 
-    // Pre-fill search from URL
     document.addEventListener('DOMContentLoaded', () => {
       if (searchVal) document.getElementById('search-input').value = searchVal;
     });
 
-    // Event listeners
     let searchTimer;
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('search-input').addEventListener('input', () => {

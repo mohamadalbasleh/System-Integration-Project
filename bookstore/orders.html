@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Orders — PageTurn</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,11 +15,11 @@
 
     <!-- Success banner (shown after checkout) -->
     <div id="success-banner" style="display:none" class="alert alert-success" style="margin-bottom:1.5rem">
-      🎉 Your order has been placed successfully! Thank you for shopping with PageTurn.
+      <i class="fa-solid fa-circle-check"></i> Your order has been placed successfully! Thank you for shopping with PageTurn.
     </div>
 
     <div class="page-header">
-      <h1>📦 My Orders</h1>
+      <h1><i class="fa-solid fa-box"></i> My Orders</h1>
       <p>Track your order history</p>
     </div>
 
@@ -48,10 +49,10 @@
         if (!orders.length) {
           el.innerHTML = `
             <div class="empty-state">
-              <div class="empty-icon">📦</div>
+              <div class="empty-icon"><i class="fa-solid fa-box"></i></div>
               <h3>No orders yet</h3>
               <p>Place your first order to see it here</p>
-              <a href="catalog.html" class="btn btn-primary" style="margin-top:1.2rem">Browse Books</a>
+              <a href="catalog.html" class="btn btn-primary" style="margin-top:1.2rem"><i class="fa-solid fa-book"></i> Browse Books</a>
             </div>`;
           return;
         }
@@ -79,20 +80,19 @@
               <div class="order-body">
                 ${order.shipping_address ? `
                   <div style="font-size:0.83rem;color:var(--gray-500);margin-bottom:0.8rem">
-                    📍 ${order.shipping_address}
+                    <i class="fa-solid fa-location-dot"></i> ${order.shipping_address}
                   </div>` : ''}
 
                 ${items.length ? `
                   <div style="display:flex;flex-wrap:wrap;gap:0.6rem">
                     ${items.map(item => {
-                      const book   = item.book || item;
-                      const price  = parseFloat(item.price || book.price || 0);
+                      const price  = parseFloat(item.price || 0);
                       const qty    = item.quantity || 1;
                       return `
                         <div style="display:flex;align-items:center;gap:0.6rem;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:0.5rem 0.8rem;">
-                          <span style="font-size:1.2rem">${bookEmoji(book.category)}</span>
+                          <span style="font-size:1.2rem;color:var(--blue-600)"><i class="fa-solid ${categoryIcon(item.category)}"></i></span>
                           <div>
-                            <div style="font-size:0.85rem;font-weight:600;color:var(--blue-900)">${book.title || 'Book'}</div>
+                            <div style="font-size:0.85rem;font-weight:600;color:var(--blue-900)">${item.title || 'Book'}</div>
                             <div style="font-size:0.77rem;color:var(--gray-500)">Qty: ${qty} · ${formatPrice(price * qty)}</div>
                           </div>
                         </div>
@@ -105,7 +105,7 @@
           `;
         }).join('');
       } catch (err) {
-        el.innerHTML = `<div class="alert alert-error">❌ ${err.message}</div>`;
+        el.innerHTML = `<div class="alert alert-error"><i class="fa-solid fa-circle-xmark"></i> ${err.message}</div>`;
       }
     }
 

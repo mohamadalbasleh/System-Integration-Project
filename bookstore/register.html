@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Account — PageTurn</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <style>
     .strength-bar { display:flex; gap:4px; margin-top:0.5rem; }
@@ -24,7 +25,7 @@
   <div class="auth-page">
     <div class="auth-card">
       <div class="auth-brand">
-        <div class="brand-icon">📚</div>
+        <div class="brand-icon"><i class="fa-solid fa-book-open"></i></div>
         <span class="brand-name">PageTurn</span>
       </div>
 
@@ -49,7 +50,7 @@
         <label class="form-label" for="password">Password</label>
         <div style="position:relative">
           <input class="form-control" type="password" id="password" placeholder="Min. 8 characters" autocomplete="new-password" style="padding-right:3rem" oninput="checkStrength()">
-          <button type="button" onclick="togglePw('password','eye1')" id="eye1" style="position:absolute;right:0.9rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--gray-400)">👁️</button>
+          <button type="button" onclick="togglePw('password','eye1')" id="eye1" style="position:absolute;right:0.9rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--gray-400)"><i class="fa-solid fa-eye"></i></button>
         </div>
         <div class="strength-bar">
           <div class="strength-seg" id="s1"></div>
@@ -65,13 +66,13 @@
         <label class="form-label" for="confirm-pw">Confirm Password</label>
         <div style="position:relative">
           <input class="form-control" type="password" id="confirm-pw" placeholder="Repeat password" autocomplete="new-password" style="padding-right:3rem">
-          <button type="button" onclick="togglePw('confirm-pw','eye2')" id="eye2" style="position:absolute;right:0.9rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--gray-400)">👁️</button>
+          <button type="button" onclick="togglePw('confirm-pw','eye2')" id="eye2" style="position:absolute;right:0.9rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--gray-400)"><i class="fa-solid fa-eye"></i></button>
         </div>
         <span class="form-error" id="cpw-err">Passwords do not match</span>
       </div>
 
       <button class="btn btn-primary" style="width:100%;justify-content:center;padding:0.85rem;font-size:1rem;margin-top:0.3rem" id="reg-btn" onclick="handleRegister()">
-        Create Account
+        <i class="fa-solid fa-user-plus"></i> Create Account
       </button>
 
       <div class="divider"><span>or</span></div>
@@ -87,8 +88,8 @@
     function togglePw(fieldId, btnId) {
       const f = document.getElementById(fieldId);
       const b = document.getElementById(btnId);
-      if (f.type === 'password') { f.type = 'text'; b.textContent = '🙈'; }
-      else { f.type = 'password'; b.textContent = '👁️'; }
+      if (f.type === 'password') { f.type = 'text'; b.innerHTML = '<i class="fa-solid fa-eye-slash"></i>'; }
+      else { f.type = 'password'; b.innerHTML = '<i class="fa-solid fa-eye"></i>'; }
     }
 
     function checkStrength() {
@@ -137,7 +138,7 @@
       const errEl = document.getElementById('reg-error');
       errEl.style.display = 'none';
       btn.disabled = true;
-      btn.textContent = '⏳ Creating account…';
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating account...';
 
       try {
         const data = await apiFetch('/users/register', {
@@ -149,19 +150,18 @@
           }),
         });
 
-        // Auto-login after register if token returned
         if (data.token || data.access_token) {
           Auth.setToken(data.token || data.access_token);
           Auth.setUser(data.user || { name: document.getElementById('name').value.trim(), email: document.getElementById('email').value.trim() });
         }
 
-        showToast('Account created! Redirecting…', 'success');
+        showToast('Account created! Redirecting...', 'success');
         setTimeout(() => window.location.href = 'index.html', 900);
       } catch (err) {
-        errEl.textContent = `❌ ${err.message}`;
+        errEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> ${err.message}`;
         errEl.style.display = 'flex';
         btn.disabled = false;
-        btn.textContent = 'Create Account';
+        btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Create Account';
       }
     }
 
